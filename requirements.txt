@@ -32,6 +32,8 @@ plotly>=5.17.0
 dash>=2.14.0
 matplotlib>=3.8.0
 seaborn>=0.13.0
+kaleido>=0.2.1  # For static plotly exports
+pillow>=10.1.0  # For image handling
 
 # Experiment tracking
 wandb>=0.16.0
