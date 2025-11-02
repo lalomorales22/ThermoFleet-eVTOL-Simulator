@@ -145,7 +145,7 @@ This section acts as a comprehensive tasks file, outlining all steps to build th
   - Subtasks: Create USD scene with urban terrain; add procedural elements (buildings from OSM data).
   - **Milestone**: Render a static 3D map viewable in Omniverse.
 
-### Phase 2: Vehicle Modeling and Spawning (3-7 days)
+### Phase 2: Vehicle Modeling and Spawning (3-7 days) ✅
 
 - **Task 2.1**: Define eVTOL blueprints.
   - Subtasks: Create 3 vehicle types (small: 100kg, sphere-like; medium: 500kg, winged; large: 1,000kg, boxy) using USD assets; parameterize mass, shape, thrust vectors.
@@ -159,7 +159,7 @@ This section acts as a comprehensive tasks file, outlining all steps to build th
   - Subtasks: Integrate cameras/LiDAR/IMU; generate noisy data streams.
   - **Milestone**: Spawn and manually control 10 vehicles in sim.
 
-### Phase 3: RL Integration and Training Pipeline (5-10 days)
+### Phase 3: RL Integration and Training Pipeline (5-10 days) ✅
 
 - **Task 3.1**: Wrap sim as RL environment.
   - Subtasks: Use Gym/PettingZoo; define obs (sensors), actions (controls), rewards (safe flight at altitude).
