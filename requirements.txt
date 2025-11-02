@@ -1,0 +1,73 @@
+# Core Python dependencies
+python-dotenv>=1.0.0
+
+# Deep Learning / ML
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# Reinforcement Learning
+gymnasium>=0.29.0
+pettingzoo>=1.24.0
+stable-baselines3>=2.0.0
+ray[rllib]>=2.8.0
+
+# PufferLib - High-performance RL
+# Note: Install from GitHub if not on PyPI
+# git+https://github.com/PufferAI/PufferLib.git
+
+# Database
+SQLAlchemy>=2.0.0
+pymysql>=1.1.0
+mysql-connector-python>=8.2.0
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+pyarrow>=14.0.0  # For Parquet support
+
+# Visualization and UI
+streamlit>=1.28.0
+plotly>=5.17.0
+dash>=2.14.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Experiment tracking
+wandb>=0.16.0
+
+# Geospatial
+# Note: Cesium integration typically requires SDK/plugin installation
+# See docs/omniverse_setup.md for Cesium setup
+
+# Utilities
+tqdm>=4.66.0
+pyyaml>=6.0.0
+click>=8.1.0
+colorlog>=6.8.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+
+# Code quality
+black>=23.11.0
+flake8>=6.1.0
+mypy>=1.7.0
+
+# Physics simulation (helpers)
+scipy>=1.11.0
+
+# API/HTTP (for potential cloud integration)
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=2.0.0
+
+# Development tools
+ipython>=8.17.0
+ipykernel>=6.27.0
+jupyter>=1.0.0

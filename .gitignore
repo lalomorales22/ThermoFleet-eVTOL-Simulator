@@ -1,0 +1,123 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
+.env
+.env.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/database/*.db
+data/database/*.sqlite*
+
+# Logs
+*.log
+data/logs/*.log
+logs/
+*.out
+
+# NVIDIA Omniverse
+*.usd
+*.usda
+*.usdc
+_build/
+_compiler/
+cache/
+kit/
+logs/
+
+# Cesium
+cesium_cache/
+*.3dtiles
+*.terrain
+
+# Machine Learning
+models/
+checkpoints/
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.pb
+wandb/
+runs/
+mlruns/
+
+# Training data and episodes
+data/episodes/*.pkl
+data/episodes/*.npy
+*.npz
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Large data files
+*.parquet
+*.hdf5
+*.zarr
+
+# Docker
+.dockerignore
+
+# Ray
+/tmp/ray/
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
