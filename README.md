@@ -283,7 +283,7 @@ graph LR
 
 ### Step 1️⃣: Clone the Repository
 ```bash
-git clone https://github.com/yourusername/FlyingCarRL.git
+git clone https://github.com/lalomorales22/Flying-Car-RL.git
 cd FlyingCarRL
 ```
 
@@ -785,19 +785,11 @@ Inspired by amazing open-source projects:
 
 ---
 
-<div align="center">
 
-```
     🛸                    🚁
          🏢  🏗️  🏪           🛸
     🏢 🏛️ 🏬 🏢 🏦 🏪      🚁
    ═══════════════════════════════
       TRAIN SMART. FLY SAFE.
          THE FUTURE IS NOW.
-```
 
-**Made with ❤️ for the flying car revolution**
-
-[![Star this repo](https://img.shields.io/github/stars/yourusername/FlyingCarRL?style=social)](https://github.com/yourusername/FlyingCarRL)
-
-</div>
