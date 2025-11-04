@@ -173,7 +173,7 @@ This section acts as a comprehensive tasks file, outlining all steps to build th
   - Subtasks: Script scenarios (bird strikes, GPS failures, weather changes).
   - **Milestone**: Train a basic policy for single-vehicle navigation.
 
-### Phase 4: Frontend and UI Development (4-8 days)
+### Phase 4: Frontend and UI Development (4-8 days) ✅
 
 - **Task 4.1**: Build visual frontend.
   - Subtasks: Use Omniverse Viewer; add camera controls, agent highlighting.
@@ -187,17 +187,17 @@ This section acts as a comprehensive tasks file, outlining all steps to build th
   - Subtasks: UI to select vehicle types, arena params, start/stop training.
   - **Milestone**: Interactive demo with 100 agents viewable in real-time.
 
-### Phase 5: Data Logging and Database Integration (3-6 days)
+### Phase 5: Data Logging and Database Integration (3-6 days) ✅
 
-- **Task 5.1**: Design DB schema.
+- **Task 5.1**: Design DB schema. ✅
   - Subtasks: Tables for episodes (id, vehicle_type, positions JSON, rewards), sensors (timestamps, data blobs), metrics.
-- **Task 5.2**: Implement logging hooks.
+- **Task 5.2**: Implement logging hooks. ✅
   - Subtasks: In sim loop, export data to SQLite (default); add MySQL switch for large-scale.
   - Dependencies: Phase 4.
-- **Task 5.3**: Add querying tools.
+- **Task 5.3**: Add querying tools. ✅
   - Subtasks: Scripts to query DB (e.g., avg reward per vehicle type); export to Pandas for analysis.
   - Effort: 2 days.
-- **Task 5.4**: Handle data volume.
+- **Task 5.4**: Handle data volume. ✅
   - Subtasks: Compression for blobs; indexing for fast queries; migration script from SQLite to MySQL.
   - **Milestone**: Log and query data from a full training run.
 
@@ -221,23 +221,126 @@ This section acts as a comprehensive tasks file, outlining all steps to build th
 
 ## Usage Guide
 
-- **Train**:
-  ```bash
-  python train.py --agents=100 --episodes=1000 --db=sqlite
-  ```
-- **View**:
-  ```bash
-  # Launch Omniverse and run:
-  python dashboard.py
-  ```
-- **Analyze**:
-  ```bash
-  python analyze_db.py --query="SELECT * FROM episodes WHERE reward > 0.8"
-  ```
+### Training
+
+Train eVTOL agents with different algorithms:
+
+```bash
+# Basic training
+python train.py --algo=PPO --vehicle-type=medium --total-timesteps=1000000
+
+# Training with custom settings
+python main.py --mode=training --algo=DDPG --vehicle-type=large --timesteps=500000
+
+# Headless simulation
+python main.py --mode=headless --agents=100 --episodes=1000 --db=sqlite
+```
+
+### Visualization
+
+Launch the interactive dashboard:
+
+```bash
+# Visual mode with Omniverse
+python main.py --mode=visual --agents=50 --arena=NYC_Manhattan
+
+# Streamlit dashboard
+streamlit run dashboard.py
+```
+
+### Database Analysis
+
+Query and analyze training data:
+
+```bash
+# Show database statistics
+python scripts/analyze_db.py --stats
+
+# View recent episodes
+python scripts/analyze_db.py --episodes --vehicle-type=medium --limit=10
+
+# View performance metrics
+python scripts/analyze_db.py --performance --vehicle-type=large
+
+# Export training progress
+python scripts/analyze_db.py --training-progress --vehicle-type=small --output=progress.csv
+
+# Export episodes to CSV
+python scripts/analyze_db.py --export-csv --output=episodes.csv --vehicle-type=medium
+
+# Custom SQL query
+python scripts/analyze_db.py --query="SELECT * FROM episodes WHERE total_reward > 100"
+```
+
+### Database Migration
+
+Migrate from SQLite to MySQL for production:
+
+```bash
+# Dry run (see what would be migrated)
+python scripts/migrate_db.py --from-sqlite --to-mysql --dry-run
+
+# Actual migration
+python scripts/migrate_db.py --from-sqlite --to-mysql --batch-size=1000
+
+# Verify migration
+python scripts/migrate_db.py --from-sqlite --to-mysql --verify-only
+```
 
 ## Data Management and Database
 
-SQLite is chosen for ease (no server, portable), handling up to 100GB datasets efficiently. For production (e.g., petabyte-scale from long runs), migrate to MySQL for concurrency and replication. All data is structured for ML replay buffers.
+The FlyingCarRL platform includes comprehensive database integration for logging and analyzing training data.
+
+### Database Features
+
+- **Dual Database Support**: SQLite (development) and MySQL (production)
+- **Comprehensive Logging**: Episodes, metrics, sensor data, and training runs
+- **Data Compression**: Automatic compression for trajectory and sensor data
+- **Query Tools**: Command-line tools for analyzing training performance
+- **Migration Support**: Easy migration from SQLite to MySQL for scaling
+
+### Database Schema
+
+The database includes the following tables:
+
+- **vehicles**: Vehicle type definitions (small, medium, large)
+- **arenas**: Simulation environments (NYC, etc.)
+- **episodes**: Training episode records with rewards and outcomes
+- **metrics**: Per-timestep metrics (position, velocity, battery, etc.)
+- **sensor_logs**: Optional sensor data logs (camera, LiDAR, IMU, GPS)
+- **training_runs**: Training run metadata and hyperparameters
+
+### Using Database Logging
+
+Integrate database logging into your training scripts:
+
+```python
+from src.database import DatabaseLogger
+from src.database.callbacks import DatabaseLoggingCallback
+
+# Create logger
+db_logger = DatabaseLogger(db_type='sqlite')
+
+# Use with Stable Baselines3
+from stable_baselines3 import PPO
+
+callback = DatabaseLoggingCallback(
+    db_logger=db_logger,
+    training_run_name="my_training_run",
+    algorithm="PPO",
+    vehicle_type="medium",
+    hyperparameters={'learning_rate': 3e-4, 'batch_size': 64}
+)
+
+model.learn(total_timesteps=1000000, callback=callback)
+```
+
+### Performance Considerations
+
+- **SQLite**: Suitable for up to 100GB datasets, single-user development
+- **MySQL**: Recommended for production, supports concurrent access and replication
+- **Compression**: Reduces storage by 50-70% for trajectory and sensor data
+- **Indexing**: Optimized indexes on episode_number, vehicle_id, and timestamps
 
 ## Testing and Evaluation
 
