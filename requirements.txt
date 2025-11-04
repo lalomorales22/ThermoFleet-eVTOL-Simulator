@@ -6,6 +6,13 @@ torch>=2.0.0
 torchvision>=0.15.0
 torchaudio>=2.0.0
 
+# Thermodynamic Computing (JAX ecosystem)
+jax[cuda12]>=0.4.20  # Use jax[cpu] for CPU-only
+jaxlib>=0.4.20
+equinox>=0.11.2
+jaxtyping>=0.2.23
+optax>=0.2.4  # JAX optimization library
+
 # Reinforcement Learning
 gymnasium>=0.29.0
 pettingzoo>=1.24.0
