@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # Main simulator service
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flyingcarrl:latest
+    container_name: flyingcarrl-simulator
+    runtime: nvidia  # Required for GPU support
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - DB_TYPE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=flyingcarrl
+      - DB_USER=flyingcar
+      - DB_PASSWORD=changeme
+      - WANDB_API_KEY=${WANDB_API_KEY}
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config:/app/config
+    depends_on:
+      - mysql
+    command: python main.py --mode=headless --agents=50 --db=mysql
+    restart: unless-stopped
+    networks:
+      - flyingcar-network
+
+  # Training service (separate for scaling)
+  trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flyingcarrl:latest
+    container_name: flyingcarrl-trainer
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - DB_TYPE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=flyingcarrl
+      - DB_USER=flyingcar
+      - DB_PASSWORD=changeme
+      - WANDB_API_KEY=${WANDB_API_KEY}
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+      - ./data:/app/data
+    depends_on:
+      - mysql
+    command: python train.py --algo PPO --vehicle-type medium --total-timesteps 1000000
+    restart: unless-stopped
+    networks:
+      - flyingcar-network
+
+  # Dashboard service
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flyingcarrl:latest
+    container_name: flyingcarrl-dashboard
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=flyingcarrl
+      - DB_USER=flyingcar
+      - DB_PASSWORD=changeme
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+      - ./data:/app/data
+    ports:
+      - "8501:8501"  # Streamlit
+    depends_on:
+      - mysql
+    command: streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
+    restart: unless-stopped
+    networks:
+      - flyingcar-network
+
+  # MySQL database
+  mysql:
+    image: mysql:8.0
+    container_name: flyingcarrl-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=flyingcarrl
+      - MYSQL_USER=flyingcar
+      - MYSQL_PASSWORD=changeme
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - flyingcar-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Ray cluster head (for distributed training)
+  ray-head:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flyingcarrl:latest
+    container_name: flyingcarrl-ray-head
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./logs:/app/logs
+    ports:
+      - "8265:8265"  # Ray dashboard
+      - "10001:10001"  # Ray client
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --dashboard-port=8265 --block
+    restart: unless-stopped
+    networks:
+      - flyingcar-network
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  flyingcar-network:
+    driver: bridge
