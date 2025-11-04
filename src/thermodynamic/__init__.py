@@ -1,5 +1,5 @@
 """
-Thermodynamic Computing Module for Flying Car RL
+Thermodynamic Computing Module for ThermoFleet eVTOL Simulator
 
 This module implements thermodynamic computing principles using energy-based models
 for efficient decision-making, path planning, and multi-agent coordination.

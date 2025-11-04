@@ -17,7 +17,7 @@
 
 ## 🎯 Project Overview
 
-**FlyingCarRL** is an advanced simulation platform for training autonomous eVTOL vehicles using **thermodynamic computing** principles. Combining traditional reinforcement learning with energy-based models (EBMs), we achieve unprecedented efficiency in multi-agent coordination, path planning, and decision-making.
+**ThermoFleet-eVTOL-Simulator** is an advanced simulation platform for training autonomous eVTOL vehicles using **thermodynamic computing** principles. Combining traditional reinforcement learning with energy-based models (EBMs), we achieve unprecedented efficiency in multi-agent coordination, path planning, and decision-making.
 
 ### 🌟 What Makes Us Different
 
@@ -107,8 +107,8 @@ Thermodynamic:   Energy Landscape → Sample from Boltzmann Distribution → Act
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/lalomorales22/Flying-Car-RL.git
-cd FlyingCarRL
+git clone https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator.git
+cd ThermoFleet-eVTOL-Simulator
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -373,6 +373,6 @@ git checkout -b feature/thermodynamic-improvements
     Train Smart. Fly Safe. Compute Efficiently.
 ```
 
-**[Docs](docs/) • [Issues](https://github.com/lalomorales22/Flying-Car-RL/issues) • [Discussions](https://github.com/lalomorales22/Flying-Car-RL/discussions)**
+**[Docs](docs/) • [Issues](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/issues) • [Discussions](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/discussions)**
 
 </div>

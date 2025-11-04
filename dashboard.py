@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FlyingCarRL Dashboard - Streamlit Web Interface
+ThermoFleet-eVTOL-Simulator Dashboard - Streamlit Web Interface
 
 Interactive dashboard for monitoring, controlling, and visualizing
 eVTOL simulations and training progress.

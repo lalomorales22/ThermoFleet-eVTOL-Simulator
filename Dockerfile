@@ -1,4 +1,4 @@
-# FlyingCarRL Docker Image
+# ThermoFleet-eVTOL-Simulator Docker Image
 # Multi-stage build for optimized image size
 
 # Stage 1: Base image with dependencies
