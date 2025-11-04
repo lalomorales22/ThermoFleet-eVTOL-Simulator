@@ -19,10 +19,9 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
 
-```
+
 🛸 → 🏢 → 🛸 → 🏗️ → 🛸 → 🏙️ → 🛸
   Simulating Tomorrow's Urban Airways
-```
 
 </div>
 
