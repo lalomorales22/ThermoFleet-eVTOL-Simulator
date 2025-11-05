@@ -110,6 +110,9 @@ Thermodynamic:   Energy Landscape → Sample from Boltzmann Distribution → Act
 git clone https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator.git
 cd ThermoFleet-eVTOL-Simulator
 
+# 1.5. Create a virtual environment
+python -m venv venv && source venv/bin/activate
+
 # 2. Install dependencies
 pip install -r requirements.txt
 
