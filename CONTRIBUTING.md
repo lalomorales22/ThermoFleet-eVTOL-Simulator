@@ -1,6 +1,6 @@
-# Contributing to FlyingCarRL
+# Contributing to ThermoFleet-eVTOL-Simulator
 
-Thank you for your interest in contributing to FlyingCarRL! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to ThermoFleet-eVTOL-Simulator! This document provides guidelines and instructions for contributing to the project.
 
 ## Code of Conduct
 
@@ -10,7 +10,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/FlyingCarRL/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/issues)
 2. If not, create a new issue with:
    - Clear, descriptive title
    - Steps to reproduce

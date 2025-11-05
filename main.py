@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FlyingCarRL - Main entry point
+ThermoFleet-eVTOL-Simulator - Main entry point
 
 This script launches the simulation in either visual, headless, or training mode.
 
@@ -31,7 +31,7 @@ load_dotenv()
 
 def parse_args():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='FlyingCarRL Simulation')
+    parser = argparse.ArgumentParser(description='ThermoFleet-eVTOL-Simulator Simulation')
 
     parser.add_argument(
         '--mode',

@@ -1,6 +1,6 @@
 # NVIDIA Omniverse and Isaac Lab Setup Guide
 
-This guide provides detailed instructions for installing and configuring NVIDIA Omniverse and Isaac Lab for FlyingCarRL development.
+This guide provides detailed instructions for installing and configuring NVIDIA Omniverse and Isaac Lab for ThermoFleet-eVTOL-Simulator development.
 
 ## Table of Contents
 - [System Requirements](#system-requirements)
@@ -232,7 +232,7 @@ C:\Users\[username]\AppData\Local\ov\pkg\isaac_sim-*\exts\
 Run full verification script:
 
 ```bash
-# From FlyingCarRL project root
+# From ThermoFleet-eVTOL-Simulator project root
 python scripts/verify_setup.py
 ```
 
@@ -348,7 +348,7 @@ Typical workflow after setup:
 1. **Start development session:**
    ```bash
    conda activate isaaclab
-   cd /path/to/flying-car-RL
+   cd /path/to/ThermoFleet-eVTOL-Simulator
    ```
 
 2. **Visual debugging:**
@@ -405,7 +405,7 @@ If you encounter issues:
 1. Check [Isaac Lab Discussions](https://github.com/isaac-sim/IsaacLab/discussions)
 2. Search [NVIDIA Forums](https://forums.developer.nvidia.com/c/omniverse/)
 3. Review [Cesium Community](https://community.cesium.com/)
-4. Open issue in [FlyingCarRL repo](https://github.com/yourusername/FlyingCarRL/issues)
+4. Open issue in [ThermoFleet-eVTOL-Simulator repo](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/issues)
 
 ---
 

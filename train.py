@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main training script for FlyingCarRL.
+Main training script for ThermoFleet-eVTOL-Simulator.
 Supports multiple algorithms and configurations via CLI.
 """
 
@@ -119,7 +119,7 @@ def parse_args():
     parser.add_argument(
         "--wandb-project",
         type=str,
-        default="flying-car-rl",
+        default="thermofleet-evtol-simulator",
         help="WandB project name",
     )
 

@@ -124,7 +124,7 @@ class PPOTrainer:
         log_dir: str = "./logs",
         save_dir: str = "./models",
         use_wandb: bool = False,
-        wandb_project: str = "flying-car-rl",
+        wandb_project: str = "thermofleet-evtol-simulator",
         wandb_name: Optional[str] = None,
     ):
         """

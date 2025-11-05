@@ -6,8 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: flyingcarrl:latest
-    container_name: flyingcarrl-simulator
+    image: thermofleet-evtol-simulator:latest
+    container_name: thermofleet-simulator
     runtime: nvidia  # Required for GPU support
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -15,8 +15,8 @@ services:
       - DB_TYPE=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=flyingcarrl
-      - DB_USER=flyingcar
+      - DB_NAME=thermofleet
+      - DB_USER=thermofleet
       - DB_PASSWORD=changeme
       - WANDB_API_KEY=${WANDB_API_KEY}
     volumes:
@@ -29,15 +29,15 @@ services:
     command: python main.py --mode=headless --agents=50 --db=mysql
     restart: unless-stopped
     networks:
-      - flyingcar-network
+      - thermofleet-network
 
   # Training service (separate for scaling)
   trainer:
     build:
       context: .
       dockerfile: Dockerfile
-    image: flyingcarrl:latest
-    container_name: flyingcarrl-trainer
+    image: thermofleet-evtol-simulator:latest
+    container_name: thermofleet-trainer
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -45,8 +45,8 @@ services:
       - DB_TYPE=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=flyingcarrl
-      - DB_USER=flyingcar
+      - DB_NAME=thermofleet
+      - DB_USER=thermofleet
       - DB_PASSWORD=changeme
       - WANDB_API_KEY=${WANDB_API_KEY}
     volumes:
@@ -58,21 +58,21 @@ services:
     command: python train.py --algo PPO --vehicle-type medium --total-timesteps 1000000
     restart: unless-stopped
     networks:
-      - flyingcar-network
+      - thermofleet-network
 
   # Dashboard service
   dashboard:
     build:
       context: .
       dockerfile: Dockerfile
-    image: flyingcarrl:latest
-    container_name: flyingcarrl-dashboard
+    image: thermofleet-evtol-simulator:latest
+    container_name: thermofleet-dashboard
     environment:
       - DB_TYPE=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_NAME=flyingcarrl
-      - DB_USER=flyingcar
+      - DB_NAME=thermofleet
+      - DB_USER=thermofleet
       - DB_PASSWORD=changeme
     volumes:
       - ./checkpoints:/app/checkpoints
@@ -85,16 +85,16 @@ services:
     command: streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
     restart: unless-stopped
     networks:
-      - flyingcar-network
+      - thermofleet-network
 
   # MySQL database
   mysql:
     image: mysql:8.0
-    container_name: flyingcarrl-mysql
+    container_name: thermofleet-mysql
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=flyingcarrl
-      - MYSQL_USER=flyingcar
+      - MYSQL_DATABASE=thermofleet
+      - MYSQL_USER=thermofleet
       - MYSQL_PASSWORD=changeme
     volumes:
       - mysql-data:/var/lib/mysql
@@ -103,7 +103,7 @@ services:
       - "3306:3306"
     restart: unless-stopped
     networks:
-      - flyingcar-network
+      - thermofleet-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -115,8 +115,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: flyingcarrl:latest
-    container_name: flyingcarrl-ray-head
+    image: thermofleet-evtol-simulator:latest
+    container_name: thermofleet-ray-head
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
@@ -130,12 +130,12 @@ services:
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --dashboard-port=8265 --block
     restart: unless-stopped
     networks:
-      - flyingcar-network
+      - thermofleet-network
 
 volumes:
   mysql-data:
     driver: local
 
 networks:
-  flyingcar-network:
+  thermofleet-network:
     driver: bridge
