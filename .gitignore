@@ -54,6 +54,7 @@ data/database/*.sqlite*
 data/logs/*.log
 logs/
 *.out
+*.monitor.csv
 
 # NVIDIA Omniverse
 *.usd
@@ -63,7 +64,6 @@ _build/
 _compiler/
 cache/
 kit/
-logs/
 
 # Cesium
 cesium_cache/

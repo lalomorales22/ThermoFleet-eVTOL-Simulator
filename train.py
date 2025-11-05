@@ -242,19 +242,29 @@ def train(args):
     thermodynamic_path_planner = None
 
     if args.thermodynamic:
-        from src.thermodynamic import ThermodynamicDecisionMaker
-        thermodynamic_decision_maker = ThermodynamicDecisionMaker(beta=args.beta)
-        logger.info("✓ Initialized ThermodynamicDecisionMaker")
+        try:
+            from src.thermodynamic import ThermodynamicDecisionMaker
+            thermodynamic_decision_maker = ThermodynamicDecisionMaker(beta=args.beta)
+            logger.info("✓ Initialized ThermodynamicDecisionMaker")
+        except ImportError as e:
+            logger.error(f"Failed to import thermodynamic modules: {e}")
+            logger.error("Please install JAX: pip install jax jaxlib")
+            sys.exit(1)
 
     if args.path_planner == "thermodynamic":
-        from src.thermodynamic import EnergyBasedPathPlanner
-        # Arena bounds will be set by the environment
-        arena_bounds = (-1000, 1000, -1000, 1000, 120, 150)  # Default bounds
-        thermodynamic_path_planner = EnergyBasedPathPlanner(
-            arena_bounds=arena_bounds,
-            beta=args.beta,
-        )
-        logger.info(f"✓ Initialized EnergyBasedPathPlanner with {args.n_waypoints} waypoints")
+        try:
+            from src.thermodynamic import EnergyBasedPathPlanner
+            # Arena bounds will be set by the environment
+            arena_bounds = (-1000, 1000, -1000, 1000, 120, 150)  # Default bounds
+            thermodynamic_path_planner = EnergyBasedPathPlanner(
+                arena_bounds=arena_bounds,
+                beta=args.beta,
+            )
+            logger.info(f"✓ Initialized EnergyBasedPathPlanner with {args.n_waypoints} waypoints")
+        except ImportError as e:
+            logger.error(f"Failed to import thermodynamic modules: {e}")
+            logger.error("Please install JAX: pip install jax jaxlib")
+            sys.exit(1)
 
     # Store thermodynamic config for passing to environment
     env_config = {

@@ -279,25 +279,30 @@ def main():
             # Initialize thermodynamic coordinator if enabled
             coordinator = None
             if args.coordinator:
-                from src.thermodynamic import ThermodynamicCoordinator
-                coordinator = ThermodynamicCoordinator(
-                    coordination_radius=args.coordination_radius,
-                    beta=args.beta,
-                    update_strategy=args.coordinator,
-                )
-                print(f"✓ Initialized ThermodynamicCoordinator with {args.coordinator} strategy")
-                print()
+                try:
+                    from src.thermodynamic import ThermodynamicCoordinator
+                    coordinator = ThermodynamicCoordinator(
+                        coordination_radius=args.coordination_radius,
+                        beta=args.beta,
+                        update_strategy=args.coordinator,
+                    )
+                    print(f"✓ Initialized ThermodynamicCoordinator with {args.coordinator} strategy")
+                    print()
+                except ImportError as e:
+                    print(f"❌ Failed to import thermodynamic modules: {e}")
+                    print("Please install JAX: pip install jax jaxlib")
+                    return 1
 
             # Initialize replay recorder
             recorder = ReplayRecorder(save_dir="replays")
 
             # Mock simulation loop
             import numpy as np
-            from src.environments.evtol_gym_env import eVTOLGymEnv
+            from src.environments.evtol_gym_env import EVTOLEnv
 
             try:
                 # Create environment
-                env = eVTOLGymEnv(vehicle_type=args.vehicle_type)
+                env = EVTOLEnv(vehicle_type=args.vehicle_type)
 
                 # Multi-agent state tracking for thermodynamic coordination
                 if coordinator and args.agents > 1:

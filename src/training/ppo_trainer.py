@@ -216,7 +216,7 @@ class PPOTrainer:
                 enable_wind=True,
                 enable_sensor_noise=True,
             )
-            env = Monitor(env, self.log_dir / f"env_{rank}")
+            env = Monitor(env, str(self.log_dir / f"env_{rank}"))
             if seed is not None:
                 env.reset(seed=seed + rank)
             return env
@@ -250,11 +250,19 @@ class PPOTrainer:
         if self.env is None:
             self.setup_env()
 
+        # Check if tensorboard is available
+        try:
+            import tensorboard
+            tb_log = str(self.log_dir)
+        except ImportError:
+            logger.warning("TensorBoard not installed. Logging disabled. Install with: pip install tensorboard")
+            tb_log = None
+
         # Create PPO model
         self.model = PPO(
             policy=policy,
             env=self.env,
-            tensorboard_log=str(self.log_dir),
+            tensorboard_log=tb_log,
             **self.ppo_kwargs,
         )
 
@@ -322,9 +330,7 @@ class PPOTrainer:
         except KeyboardInterrupt:
             logger.info("Training interrupted by user")
             self.save_checkpoint("interrupted")
-
-        finally:
-            self.cleanup()
+            raise  # Re-raise to let caller handle cleanup
 
     def save_checkpoint(self, name: str = "checkpoint"):
         """Save a checkpoint."""

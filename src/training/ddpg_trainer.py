@@ -171,7 +171,7 @@ class DDPGTrainer:
                 enable_wind=True,
                 enable_sensor_noise=True,
             )
-            env = Monitor(env, self.log_dir / f"env_{rank}")
+            env = Monitor(env, str(self.log_dir / f"env_{rank}"))
             if seed is not None:
                 env.reset(seed=seed + rank)
             return env
@@ -235,11 +235,19 @@ class DDPGTrainer:
         if self.algorithm in ["DDPG", "TD3"]:
             self.algo_kwargs["action_noise"] = self.action_noise
 
+        # Check if tensorboard is available
+        try:
+            import tensorboard
+            tb_log = str(self.log_dir)
+        except ImportError:
+            logger.warning("TensorBoard not installed. Logging disabled. Install with: pip install tensorboard")
+            tb_log = None
+
         # Create model
         self.model = AlgoClass(
             policy=policy,
             env=self.env,
-            tensorboard_log=str(self.log_dir),
+            tensorboard_log=tb_log,
             **self.algo_kwargs,
         )
 

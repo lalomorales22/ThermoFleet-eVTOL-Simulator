@@ -87,7 +87,7 @@ python main.py \
 Standard training without thermodynamic features:
 
 ```bash
-python train.py --algo=PPO --vehicle-type=medium --timesteps=1000000
+python train.py --algo=PPO --vehicle-type=medium --total-timesteps=1000000
 ```
 
 ### 2. Thermodynamic Decision Making

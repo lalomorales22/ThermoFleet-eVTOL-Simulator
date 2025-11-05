@@ -238,7 +238,7 @@ python main.py --mode=headless --agents=100 --coordinator=block_gibbs
 ### Basic Training
 ```bash
 # Traditional RL
-python train.py --algo=PPO --vehicle-type=medium --timesteps=1000000
+python train.py --algo=PPO --vehicle-type=medium --total-timesteps=1000000
 
 # Headless simulation (max speed)
 python main.py --mode=headless --agents=100 --episodes=1000
@@ -286,6 +286,32 @@ python scripts/analyze_db.py --export-csv --output=energy_trace.csv
 # Query specific episodes
 python scripts/analyze_db.py --episodes --vehicle-type=medium --limit=10
 ```
+
+### Training Visualization with TensorBoard
+
+Monitor training progress in real-time:
+
+```bash
+# Start TensorBoard
+tensorboard --logdir=./logs
+
+# Then open browser to: http://localhost:6006/
+```
+
+**Available Metrics:**
+- `rollout/ep_rew_mean` - Average episode reward
+- `rollout/ep_len_mean` - Average episode length
+- `train/learning_rate` - Current learning rate
+- `train/policy_loss` - Policy network loss
+- `train/value_loss` - Value network loss
+- `train/entropy_loss` - Exploration entropy
+
+**Tips:**
+- Start TensorBoard before training to watch in real-time
+- Use different log directories for experiment comparison
+- The warning "TensorFlow installation not found" is normal and can be ignored
+
+See [TENSORBOARD_GUIDE.md](TENSORBOARD_GUIDE.md) for detailed usage instructions.
 
 ---
 

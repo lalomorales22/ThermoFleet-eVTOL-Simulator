@@ -19,6 +19,8 @@ gymnasium>=0.29.0
 pettingzoo>=1.24.0
 stable-baselines3>=2.0.0
 ray[rllib]>=2.8.0
+tensorboard>=2.14.0  # For training metrics visualization
+rich>=13.0.0  # For progress bars in stable-baselines3
 
 # PufferLib - High-performance RL
 # Note: Install from GitHub if not on PyPI
@@ -30,7 +32,8 @@ pymysql>=1.1.0
 mysql-connector-python>=8.2.0
 
 # Data processing
-numpy>=1.24.0
+# NumPy version constrained for compatibility with heavyball and pufferlib
+numpy>=1.26.0,<2.0.0
 pandas>=2.0.0
 pyarrow>=14.0.0  # For Parquet support
 
