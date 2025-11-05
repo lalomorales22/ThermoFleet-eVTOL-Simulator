@@ -135,7 +135,7 @@ python main.py --mode=visual
 
 ```bash
 # Train using thermodynamic decision making
-python train.py --algo=PPO --thermodynamic=true --beta=2.0
+python train.py --algo=PPO --thermodynamic --beta=2.0
 
 # Train with energy-based path planning
 python train.py --algo=DDPG --path-planner=thermodynamic --n-waypoints=10

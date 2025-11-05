@@ -94,6 +94,29 @@ def parse_args():
         help='Total training timesteps (default: 1M)'
     )
 
+    # Thermodynamic computing arguments
+    parser.add_argument(
+        '--coordinator',
+        type=str,
+        default=None,
+        choices=['block_gibbs', 'mean_field'],
+        help='Multi-agent thermodynamic coordinator strategy (default: None)'
+    )
+
+    parser.add_argument(
+        '--coordination-radius',
+        type=float,
+        default=100.0,
+        help='Coordination radius for thermodynamic multi-agent coordination (default: 100m)'
+    )
+
+    parser.add_argument(
+        '--beta',
+        type=float,
+        default=1.0,
+        help='Inverse temperature for thermodynamic coordination (default: 1.0)'
+    )
+
     return parser.parse_args()
 
 
@@ -102,10 +125,17 @@ def main():
     args = parse_args()
 
     print("=" * 60)
-    print("FlyingCarRL - Autonomous eVTOL Training Simulator")
+    print("ThermoFleet-eVTOL-Simulator - Autonomous eVTOL Training Simulator")
     print("=" * 60)
     print(f"\nConfiguration:")
     print(f"  Mode: {args.mode}")
+
+    # Log thermodynamic configuration if enabled
+    if args.coordinator:
+        print(f"\n🔥 THERMODYNAMIC MULTI-AGENT COORDINATION ENABLED")
+        print(f"  Coordinator Strategy: {args.coordinator}")
+        print(f"  Coordination Radius: {args.coordination_radius}m")
+        print(f"  Beta (inverse temperature): {args.beta}")
 
     if args.mode == 'training':
         print(f"  Algorithm: {args.algo}")
@@ -246,6 +276,18 @@ def main():
             print()
             print(f"Running {args.episodes} episodes...")
 
+            # Initialize thermodynamic coordinator if enabled
+            coordinator = None
+            if args.coordinator:
+                from src.thermodynamic import ThermodynamicCoordinator
+                coordinator = ThermodynamicCoordinator(
+                    coordination_radius=args.coordination_radius,
+                    beta=args.beta,
+                    update_strategy=args.coordinator,
+                )
+                print(f"✓ Initialized ThermodynamicCoordinator with {args.coordinator} strategy")
+                print()
+
             # Initialize replay recorder
             recorder = ReplayRecorder(save_dir="replays")
 
@@ -256,6 +298,21 @@ def main():
             try:
                 # Create environment
                 env = eVTOLGymEnv(vehicle_type=args.vehicle_type)
+
+                # Multi-agent state tracking for thermodynamic coordination
+                if coordinator and args.agents > 1:
+                    from src.thermodynamic.multi_agent_coordinator import AgentState
+                    # Initialize agent states
+                    agent_states = []
+                    for i in range(args.agents):
+                        agent_states.append(AgentState(
+                            agent_id=f"agent_{i}",
+                            position=np.random.uniform(-100, 100, 3),
+                            velocity=np.zeros(3),
+                            goal=np.random.uniform(-500, 500, 3),
+                            battery=100.0,
+                            status="active"
+                        ))
 
                 for episode in range(args.episodes):
                     # Start recording
@@ -272,6 +329,23 @@ def main():
                     timestep = 0
 
                     while not done and timestep < 1000:
+                        # Apply thermodynamic coordination if enabled
+                        if coordinator and args.agents > 1:
+                            # Update agent states (simplified)
+                            for i, agent in enumerate(agent_states):
+                                agent.position = obs[:3] if i == 0 else agent.position
+                                agent.velocity = obs[3:6] if i == 0 else agent.velocity
+
+                            # Coordinate fleet
+                            agent_states, coord_metadata = coordinator.coordinate_fleet(
+                                agent_states,
+                                obstacles=[]  # Would be populated from environment
+                            )
+
+                            # Use coordinated velocities (in a real implementation)
+                            if timestep % 100 == 0:  # Log periodically
+                                print(f"  Coordination: Energy reduction = {coord_metadata['energy_reduction']:.2f}")
+
                         # Random action for demo
                         action = env.action_space.sample()
                         obs, reward, terminated, truncated, info = env.step(action)

@@ -174,6 +174,35 @@ def parse_args():
         help="Path to YAML config file (overrides CLI args)",
     )
 
+    # Thermodynamic computing arguments
+    parser.add_argument(
+        "--thermodynamic",
+        action="store_true",
+        help="Enable thermodynamic decision making",
+    )
+
+    parser.add_argument(
+        "--beta",
+        type=float,
+        default=2.0,
+        help="Inverse temperature for thermodynamic sampling (higher = more deterministic)",
+    )
+
+    parser.add_argument(
+        "--path-planner",
+        type=str,
+        default=None,
+        choices=["thermodynamic", "standard"],
+        help="Path planning method (thermodynamic uses energy-based planning)",
+    )
+
+    parser.add_argument(
+        "--n-waypoints",
+        type=int,
+        default=10,
+        help="Number of waypoints for thermodynamic path planning",
+    )
+
     return parser.parse_args()
 
 
@@ -195,7 +224,44 @@ def train(args):
     logger.info(f"Total Timesteps: {args.total_timesteps:,}")
     logger.info(f"Parallel Environments: {args.n_envs}")
     logger.info(f"Device: {args.device}")
+
+    # Log thermodynamic settings
+    if args.thermodynamic or args.path_planner == "thermodynamic":
+        logger.info("\n🔥 THERMODYNAMIC COMPUTING ENABLED")
+        if args.thermodynamic:
+            logger.info(f"Thermodynamic Decision Making: ON")
+            logger.info(f"Beta (inverse temperature): {args.beta}")
+        if args.path_planner == "thermodynamic":
+            logger.info(f"Energy-Based Path Planner: ON")
+            logger.info(f"Number of Waypoints: {args.n_waypoints}")
+
     logger.info("=" * 60)
+
+    # Initialize thermodynamic modules if enabled
+    thermodynamic_decision_maker = None
+    thermodynamic_path_planner = None
+
+    if args.thermodynamic:
+        from src.thermodynamic import ThermodynamicDecisionMaker
+        thermodynamic_decision_maker = ThermodynamicDecisionMaker(beta=args.beta)
+        logger.info("✓ Initialized ThermodynamicDecisionMaker")
+
+    if args.path_planner == "thermodynamic":
+        from src.thermodynamic import EnergyBasedPathPlanner
+        # Arena bounds will be set by the environment
+        arena_bounds = (-1000, 1000, -1000, 1000, 120, 150)  # Default bounds
+        thermodynamic_path_planner = EnergyBasedPathPlanner(
+            arena_bounds=arena_bounds,
+            beta=args.beta,
+        )
+        logger.info(f"✓ Initialized EnergyBasedPathPlanner with {args.n_waypoints} waypoints")
+
+    # Store thermodynamic config for passing to environment
+    env_config = {
+        'thermodynamic_decision_maker': thermodynamic_decision_maker,
+        'thermodynamic_path_planner': thermodynamic_path_planner,
+        'n_waypoints': args.n_waypoints if args.path_planner == "thermodynamic" else None,
+    }
 
     # Create trainer based on algorithm
     if args.algo == "PPO":
@@ -237,6 +303,11 @@ def train(args):
 
     else:
         raise ValueError(f"Unknown algorithm: {args.algo}")
+
+    # Note: The thermodynamic modules (env_config) should be integrated into the
+    # environment creation within the trainer. For now, this demonstrates the
+    # argument parsing and initialization. Full integration would require
+    # modifying the EVTOLEnv to accept and use these thermodynamic components.
 
     # Train
     try:
