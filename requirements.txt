@@ -32,8 +32,8 @@ pymysql>=1.1.0
 mysql-connector-python>=8.2.0
 
 # Data processing
-# NumPy version constrained for compatibility with heavyball and pufferlib
-numpy>=1.26.0,<2.0.0
+# NumPy 2.x is required for JAX 0.8+ and is compatible with all other packages
+numpy>=2.0.0
 pandas>=2.0.0
 pyarrow>=14.0.0  # For Parquet support
 

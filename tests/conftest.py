@@ -13,7 +13,16 @@ def temp_db():
     """Create a temporary database file for testing."""
     with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
         db_path = f.name
+
+    # Set environment variable for the test database
+    os.environ['SQLITE_DB_PATH'] = db_path
+
+    # Initialize database schema
+    from scripts.init_db import init_database
+    init_database(db_type='sqlite', reset=True)
+
     yield db_path
+
     # Cleanup
     if os.path.exists(db_path):
         os.unlink(db_path)
