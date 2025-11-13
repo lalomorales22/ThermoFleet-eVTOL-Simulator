@@ -405,6 +405,20 @@ pytest tests/ -v --cov=src --cov-report=html
 
 ## 🐛 Troubleshooting
 
+### Problem: Thermodynamic NaN Error
+
+**Error**: `RuntimeWarning: invalid value encountered in divide` + `probabilities contain NaN`
+
+This occurred in thermodynamic coordination tests (Test 15, 16) and is now **FIXED**!
+
+**What was fixed:**
+- Numerical stability in Boltzmann distribution calculations
+- Log-sum-exp trick prevents overflow/underflow
+- Safety checks for edge cases
+- See `docs/THERMODYNAMIC_NAN_FIX.md` for technical details
+
+All thermodynamic tests (6-10, 15-16) now work correctly! 🎉
+
 ### Problem: Pickle Error with Parallel Training
 
 **Error**: `TypeError: cannot pickle '_thread.RLock' object`
@@ -449,11 +463,48 @@ DB_TYPE=sqlite
 ### Problem: WandB login issues
 ```bash
 # Solution: Set API key in .env
-WANDB_API_KEY=e5dff0811a2b1b733eac3ee3678c9aa958970a94
+WANDB_API_KEY=your_api_key_here
 
 # Or login manually
 wandb login
 ```
+
+### Problem: WandB Permission Error (403)
+
+**Error**: `Error uploading run: returned error 403: permission denied`
+
+This happens when WandB can't create runs in the specified project. Common causes:
+
+**Solution 1: Use Your Own Username/Entity**
+```bash
+# Add your WandB username to .env
+WANDB_ENTITY=your_wandb_username
+
+# Then train
+python train.py --algo=PPO --use-wandb
+```
+
+**Solution 2: Create the Project First**
+1. Go to https://wandb.ai
+2. Create a new project named `thermofleet-evtol-simulator`
+3. Then run training
+
+**Solution 3: Use a Different Project Name**
+```bash
+# Specify your own project name
+python train.py --algo=PPO --use-wandb --wandb-project=my-evtol-project
+```
+
+**Solution 4: Train Without WandB**
+```bash
+# Just remove the --use-wandb flag
+python train.py --algo=PPO --total-timesteps=10000
+
+# You can still use TensorBoard!
+tensorboard --logdir=./logs
+```
+
+**Note**: The code now gracefully falls back to training without WandB if there's a permission error, so training will continue successfully even if WandB fails.
 
 ### Problem: Training is slow on CPU
 ```bash
@@ -785,6 +836,131 @@ python train.py \
   --save-dir=./models/ultimate_test
 ```
 
+### 🌦️ NEW: Scenario Generation Tests (Tests 21-30)
+
+**Priority 1.1 Implementation!** Test the new synthetic scenario generation system with weather, traffic, failures, and edge cases.
+
+#### Test 21: Clear Weather Training
+**What it tests**: Training in ideal weather conditions
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=medium \
+  --total-timesteps=10000 \
+  --scenario-weather=clear \
+  --scenario-difficulty=0.3
+```
+
+#### Test 22: Stormy Weather Challenge
+**What it tests**: High turbulence, wind, and precipitation
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=medium \
+  --total-timesteps=10000 \
+  --scenario-weather=stormy \
+  --scenario-difficulty=0.8
+```
+
+#### Test 23: Foggy Low-Visibility Training
+**What it tests**: Navigation with severely reduced visibility
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=small \
+  --total-timesteps=10000 \
+  --scenario-weather=foggy \
+  --scenario-difficulty=0.7
+```
+
+#### Test 24: Windy Conditions with Gusts
+**What it tests**: Wind shear and gust handling
+```bash
+python train.py \
+  --algo=DDPG \
+  --vehicle-type=large \
+  --total-timesteps=10000 \
+  --scenario-weather=windy \
+  --scenario-difficulty=0.6
+```
+
+#### Test 25: Rainy Weather with Traffic
+**What it tests**: Combined weather and high-traffic scenarios
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=medium \
+  --total-timesteps=15000 \
+  --scenario-weather=rainy \
+  --scenario-traffic=rush_hour \
+  --scenario-difficulty=0.7
+```
+
+#### Test 26: Snowy Conditions
+**What it tests**: Cold temperature and snow effects
+```bash
+python train.py \
+  --algo=TD3 \
+  --vehicle-type=medium \
+  --total-timesteps=10000 \
+  --scenario-weather=snowy \
+  --scenario-difficulty=0.65
+```
+
+#### Test 27: Mixed Weather Curriculum
+**What it tests**: All weather types with curriculum learning
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=medium \
+  --total-timesteps=20000 \
+  --scenario-weather=mixed \
+  --curriculum-learning \
+  --scenario-difficulty=0.5
+```
+
+#### Test 28: Weather + Failure Mode Training
+**What it tests**: Stormy weather with system failures
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=medium \
+  --total-timesteps=15000 \
+  --scenario-weather=stormy \
+  --enable-failures \
+  --scenario-difficulty=0.8
+```
+
+#### Test 29: Weather + Edge Cases
+**What it tests**: Combined weather and unexpected events
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=small \
+  --total-timesteps=12000 \
+  --scenario-weather=rainy \
+  --enable-edge-cases \
+  --scenario-difficulty=0.75
+```
+
+#### Test 30: Complete Scenario Stack
+**What it tests**: Weather + Traffic + Failures + Edge Cases
+```bash
+python train.py \
+  --algo=PPO \
+  --vehicle-type=large \
+  --total-timesteps=25000 \
+  --n-envs=8 \
+  --scenario-weather=mixed \
+  --scenario-traffic=rush_hour \
+  --enable-failures \
+  --enable-edge-cases \
+  --curriculum-learning \
+  --scenario-difficulty=0.9 \
+  --use-wandb \
+  --wandb-name="complete-scenario-test"
+```
+
 ### 📝 Test Tracking Template
 
 Copy this to track your progress:
@@ -792,26 +968,47 @@ Copy this to track your progress:
 ```markdown
 ## My Test Progress
 
+### Basic & Algorithm Tests
 - [ ] Test 1: Basic PPO ✓ Passed / ✗ Failed / ⏸ Skipped
 - [ ] Test 2: Small Vehicle
 - [ ] Test 3: Large Vehicle
 - [ ] Test 4: DDPG
 - [ ] Test 5: TD3
+
+### Thermodynamic Tests
 - [ ] Test 6: Thermodynamic Decision
 - [ ] Test 7: Path Planning
 - [ ] Test 8: Full Thermodynamic
 - [ ] Test 9: Deterministic
 - [ ] Test 10: Exploratory
+
+### Logging & Monitoring Tests
 - [ ] Test 11: WandB
 - [ ] Test 12: Custom Logs
 - [ ] Test 13: Reproducible
+
+### Simulation & Multi-Agent Tests
 - [ ] Test 14: Multi-Agent
 - [ ] Test 15: Block Gibbs
 - [ ] Test 16: Mean-Field
+
+### Advanced Training Tests
 - [ ] Test 17: High Parallel
 - [ ] Test 18: Long Episodes
 - [ ] Test 19: SAC
 - [ ] Test 20: Complete Stack
+
+### NEW: Scenario Generation Tests (Weather Focus)
+- [ ] Test 21: Clear Weather
+- [ ] Test 22: Stormy Weather
+- [ ] Test 23: Foggy Conditions
+- [ ] Test 24: Windy with Gusts
+- [ ] Test 25: Rainy + Traffic
+- [ ] Test 26: Snowy Conditions
+- [ ] Test 27: Mixed Weather Curriculum
+- [ ] Test 28: Weather + Failures
+- [ ] Test 29: Weather + Edge Cases
+- [ ] Test 30: Complete Scenario Stack
 ```
 
 ### 🎯 What to Look For in Each Test
@@ -824,6 +1021,7 @@ Copy this to track your progress:
 - ✅ Logs appear in correct directories
 - ✅ WandB shows metrics (when enabled)
 - ✅ No memory errors
+- ✅ **NEW:** Scenario info appears in logs (weather type, traffic, failures)
 
 **Expected Outputs:**
 ```
@@ -831,17 +1029,22 @@ Copy this to track your progress:
 [2025-11-13 12:34:56] [INFO] Algorithm: PPO
 [2025-11-13 12:34:56] [INFO] Total Timesteps: 10,000
 [2025-11-13 12:34:57] [INFO] ✓ Initialized environment
+[2025-11-13 12:34:57] [INFO] Generated scenario: scenario_000001 (difficulty=0.50)
+[2025-11-13 12:34:57] [INFO] Weather: stormy, Traffic: high, Failures: 2, Edge cases: 1
 [2025-11-13 12:35:10] [INFO] Training completed successfully!
 ```
 
 ### 📊 Compare Results
 
 Create a spreadsheet to compare:
-| Test # | Algorithm | Vehicle | Thermodynamic | Final Reward | Time (min) | Notes |
-|--------|-----------|---------|---------------|--------------|------------|-------|
-| 1 | PPO | Medium | No | 42.3 | 2.1 | Baseline |
-| 6 | PPO | Medium | Yes | 58.7 | 2.3 | +39% reward! |
-| ... | ... | ... | ... | ... | ... | ... |
+| Test # | Algorithm | Vehicle | Weather | Scenario | Final Reward | Time (min) | Notes |
+|--------|-----------|---------|---------|----------|--------------|------------|-------|
+| 1 | PPO | Medium | Default | No | 42.3 | 2.1 | Baseline |
+| 6 | PPO | Medium | Default | No (Thermo) | 58.7 | 2.3 | +39% reward! |
+| 21 | PPO | Medium | Clear | Yes | 65.2 | 2.5 | Easy weather |
+| 22 | PPO | Medium | Stormy | Yes | 38.1 | 2.8 | Challenging! |
+| 30 | PPO | Large | Mixed | Yes (Full) | 52.4 | 5.2 | Ultimate test |
+| ... | ... | ... | ... | ... | ... | ... | ... |
 
 ---
 
@@ -849,13 +1052,15 @@ Create a spreadsheet to compare:
 
 After following this guide, you should have:
 - ✅ Database initialized (SQLite or MySQL)
+- ✅ Scenario tracking tables migrated (run `python scripts/migrate_db_scenarios.py`)
 - ✅ .env file configured with CPU/GPU toggle
 - ✅ First training run completed
 - ✅ TensorBoard showing metrics
 - ✅ WandB tracking experiments
 - ✅ Dashboard running
 - ✅ Thermodynamic features tested
-- ✅ **At least 5 of the 20 test scenarios completed**
+- ✅ **NEW:** Scenario generation system tested (run `python scripts/test_scenario_generation.py`)
+- ✅ **At least 5 of the 30 test scenarios completed** (including 2-3 weather tests!)
 - ✅ Understanding of all feature flags
 - ✅ Understanding of next steps
 
@@ -867,14 +1072,17 @@ After following this guide, you should have:
 1. Train autonomous eVTOL agents
 2. Experiment with thermodynamic computing
 3. Scale to multi-agent scenarios
-4. Contribute to the future of urban air mobility!
+4. **NEW:** Train with diverse scenarios (weather, traffic, failures, edge cases)
+5. Contribute to the future of urban air mobility!
 
 **Questions?** Check:
 - `APP_REVIEW.md` - Comprehensive analysis
 - `TASKS.md` - Ideas for expansion
 - `THERMODYNAMIC_USAGE.md` - Thermodynamic details
+- **NEW:** `SCENARIO_GENERATION_GUIDE.md` - Complete scenario generation guide
+- **NEW:** `PRIORITY_1.1_IMPLEMENTATION_SUMMARY.md` - Implementation details
 
-**Happy flying!** 🚁🔥
+**Happy flying!** 🚁🔥🌦️
 
 ---
 

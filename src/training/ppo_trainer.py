@@ -24,6 +24,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.utils import set_random_seed
 
 from ..environments.evtol_gym_env import EVTOLEnv
+from ..environments.evtol_scenario_env import EVTOLScenarioEnv
 from ..database.db_logger import DatabaseLogger
 from ..database.callbacks import DatabaseLoggingCallback
 
@@ -128,6 +129,7 @@ class PPOTrainer:
         use_wandb: bool = False,
         wandb_project: str = "thermofleet-evtol-simulator",
         wandb_name: Optional[str] = None,
+        scenario_config: Optional[Dict] = None,  # NEW: Scenario generation config
     ):
         """
         Initialize PPO trainer.
@@ -163,6 +165,7 @@ class PPOTrainer:
         self.max_steps = max_steps
         self.total_timesteps = total_timesteps
         self.seed = seed
+        self.scenario_config = scenario_config  # NEW: Store scenario config
 
         # PPO hyperparameters
         self.ppo_kwargs = {
@@ -212,6 +215,10 @@ class PPOTrainer:
             except ImportError:
                 logger.warning("wandb not installed. Disabling wandb.")
                 self.use_wandb = False
+            except Exception as e:
+                logger.error(f"Failed to initialize WandB: {e}")
+                logger.warning("Continuing training without WandB logging...")
+                self.use_wandb = False
 
         # Initialize environment and model
         self.env = None
@@ -227,12 +234,28 @@ class PPOTrainer:
     def make_env(self, rank: int, seed: int = 0) -> Callable:
         """Create a function that creates an environment."""
         def _init():
-            env = EVTOLEnv(
-                vehicle_type=self.vehicle_type,
-                max_steps=self.max_steps,
-                enable_wind=True,
-                enable_sensor_noise=True,
-            )
+            # Use EVTOLScenarioEnv if scenario config provided, else standard EVTOLEnv
+            if self.scenario_config and self.scenario_config.get('enable_scenarios'):
+                env = EVTOLScenarioEnv(
+                    vehicle_type=self.vehicle_type,
+                    max_steps=self.max_steps,
+                    scenario_difficulty=self.scenario_config.get('scenario_difficulty', 0.5),
+                    curriculum_learning=self.scenario_config.get('curriculum_learning', False),
+                    enable_weather_scenarios=self.scenario_config.get('enable_weather_scenarios', True),
+                    enable_traffic_scenarios=self.scenario_config.get('enable_traffic_scenarios', True),
+                    enable_failure_scenarios=self.scenario_config.get('enable_failures', False),
+                    enable_edge_cases=self.scenario_config.get('enable_edge_cases', False),
+                    weather_type=self.scenario_config.get('scenario_weather'),
+                    traffic_density=self.scenario_config.get('scenario_traffic'),
+                    scenario_seed=self.scenario_config.get('scenario_seed'),
+                )
+            else:
+                env = EVTOLEnv(
+                    vehicle_type=self.vehicle_type,
+                    max_steps=self.max_steps,
+                    enable_wind=True,
+                    enable_sensor_noise=True,
+                )
             env = Monitor(env, str(self.log_dir / f"env_{rank}"))
             if seed is not None:
                 env.reset(seed=seed + rank)

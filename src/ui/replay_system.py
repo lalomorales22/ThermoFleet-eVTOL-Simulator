@@ -257,7 +257,22 @@ class ReplayRecorder:
         # Also save metadata as JSON for easy inspection
         metadata_path = self.save_dir / f"{episode_id}_metadata.json"
         with open(metadata_path, 'w') as f:
-            json.dump(asdict(metadata), f, indent=2)
+            # Convert metadata to dict and handle numpy types
+            metadata_dict = asdict(metadata)
+            # Custom JSON encoder to handle numpy types
+            class NumpyEncoder(json.JSONEncoder):
+                def default(self, obj):
+                    if isinstance(obj, np.integer):
+                        return int(obj)
+                    if isinstance(obj, np.floating):
+                        return float(obj)
+                    if isinstance(obj, np.ndarray):
+                        return obj.tolist()
+                    if isinstance(obj, (np.bool_, bool)):
+                        return bool(obj)
+                    return super().default(obj)
+            
+            json.dump(metadata_dict, f, indent=2, cls=NumpyEncoder)
 
         return str(filepath)
 

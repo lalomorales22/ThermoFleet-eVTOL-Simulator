@@ -221,7 +221,14 @@ class ThermodynamicDecisionMaker:
         # Numerical stability: subtract max
         log_probabilities -= log_probabilities.max()
         probabilities = np.exp(log_probabilities)
-        probabilities /= probabilities.sum()
+        
+        # Normalize with safety check
+        prob_sum = probabilities.sum()
+        if prob_sum > 0 and not np.isnan(prob_sum):
+            probabilities /= prob_sum
+        else:
+            # Fallback to uniform distribution if numerical issues
+            probabilities = np.ones(len(available_actions)) / len(available_actions)
 
         # Sample action
         selected_idx = np.random.choice(len(available_actions), p=probabilities)

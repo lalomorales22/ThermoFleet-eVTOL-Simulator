@@ -55,6 +55,9 @@ data/logs/*.log
 logs/
 *.out
 *.monitor.csv
+logs/*.monitor.csv
+logs/**/*.monitor.csv
+logs/**/events.out.tfevents.*
 
 # NVIDIA Omniverse
 *.usd
@@ -81,11 +84,34 @@ checkpoints/
 wandb/
 runs/
 mlruns/
+*.zip
+best_model/
+final_model/
+
+# Evaluation results
+eval_results/
+evaluation/
+evaluations.npz
 
 # Training data and episodes
 data/episodes/*.pkl
 data/episodes/*.npy
-*.npz
+
+# Replays (locally generated during training/evaluation)
+replays/*.pkl
+replays/*.pkl.gz
+replays/*.json
+replays/*_metadata.json
+
+# Test scenarios (locally generated synthetic data)
+data/test_scenarios/*.json
+data/test_scenarios/*.pkl
+data/scenarios/*.json
+data/scenarios/*.pkl
+
+# Scenario generation output
+scenarios/
+test_scenarios/
 
 # OS files
 .DS_Store
@@ -121,5 +147,4 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-replays/episode_20251111_002714.pkl.gz
-replays/episode_20251111_002714_metadata.json
+

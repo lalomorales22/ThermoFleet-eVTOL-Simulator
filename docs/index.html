@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThermoFleet eVTOL Simulator - Documentation</title>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    
+    <!-- Highlight.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js" defer></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-primary: #58a6ff;
+            --accent-secondary: #1f6feb;
+            --border-color: #30363d;
+            --success-color: #3fb950;
+            --warning-color: #d29922;
+            --error-color: #f85149;
+            --sidebar-width: 300px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-primary), var(--success-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Search */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            width: 300px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 65px;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .nav-item {
+            padding: 0.5rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-tertiary);
+            border-left-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .nav-icon {
+            font-size: 0.875rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: 65px;
+            padding: 2rem 3rem;
+            max-width: 1200px;
+        }
+
+        .doc-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2.5rem;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Markdown Styles */
+        .doc-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .doc-content h2 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .doc-content h3 {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .doc-content h4 {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .doc-content p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .doc-content a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .doc-content a:hover {
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .doc-content code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--accent-primary);
+        }
+
+        .doc-content pre {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .doc-content pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        .doc-content blockquote {
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .doc-content ul, .doc-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .doc-content table th,
+        .doc-content table td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .doc-content table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        .doc-content table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .doc-content img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .doc-content hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 2rem 0;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success {
+            background: rgba(63, 185, 80, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .badge-warning {
+            background: rgba(210, 153, 34, 0.1);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+
+        .badge-info {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading::after {
+            content: '...';
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Error */
+        .error {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--error-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            color: var(--error-color);
+            margin: 1rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .search-input {
+                width: 200px;
+            }
+        }
+
+        /* Scroll to top */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(88, 166, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title">
+            <h1>🚁 ThermoFleet eVTOL Docs</h1>
+            <span class="header-subtitle">Powered by Thermodynamic Computing</span>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search documentation...">
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- Navigation will be populated by JavaScript -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="doc-container">
+            <div class="doc-content" id="docContent">
+                <div class="loading">Loading documentation</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top -->
+    <div class="scroll-top" id="scrollTop">↑</div>
+
+    <script>
+        // Documentation structure
+        const docs = {
+            'Getting Started': [
+                { file: 'GETTING_STARTED.md', title: '📖 Getting Started Guide' },
+                { file: '../README.md', title: '🏠 Project Overview' },
+                { file: 'ENV_UPDATE_INSTRUCTIONS.md', title: '⚙️ Environment Setup' },
+            ],
+            'Core Features': [
+                { file: 'THERMODYNAMIC_USAGE.md', title: '🔥 Thermodynamic Computing' },
+                { file: 'DATA_FLOW.md', title: '📊 Data Flow Architecture' },
+                { file: 'OMNIVERSE_SETUP.md', title: '🌐 Omniverse Integration' },
+            ],
+            'Monitoring & Visualization': [
+                { file: 'TENSORBOARD_GUIDE.md', title: '📈 TensorBoard Guide' },
+                { file: 'WANDB_SETUP.md', title: '☁️ WandB Setup' },
+                { file: 'UI_GUIDE.md', title: '🎨 UI Guide' },
+                { file: 'DASHBOARD_FIX_SUMMARY.md', title: '📊 Dashboard Fixes' },
+            ],
+            'Troubleshooting & Fixes': [
+                { file: 'FIX_COMPLETE.md', title: '✅ All Fixes Complete' },
+                { file: 'PICKLE_FIX_SUMMARY.md', title: '🔧 Pickle Error Fix' },
+                { file: 'WANDB_FIX.md', title: '☁️ WandB Error Fix' },
+                { file: 'THERMODYNAMIC_NAN_FIX.md', title: '🔥 NaN Error Fix' },
+            ],
+            'Development': [
+                { file: 'CONTRIBUTING.md', title: '🤝 Contributing Guide' },
+                { file: 'CI_CD_GUIDE.md', title: '🚀 CI/CD Guide' },
+                { file: 'APP_REVIEW.md', title: '📱 App Review' },
+            ],
+            'Project History': [
+                { file: 'SESSION_SUMMARY_NOV13.md', title: '📅 Session Nov 13' },
+                { file: 'PHASE_5_SUMMARY.md', title: '🎯 Phase 5 Summary' },
+                { file: 'PHASE_6_SUMMARY.md', title: '🎯 Phase 6 Summary' },
+                { file: 'AI_REVIEW_SUMMARY.md', title: '🤖 AI Review' },
+            ],
+        };
+
+        let currentDoc = null;
+
+        // Initialize
+        function init() {
+            // Wait for marked.js to load
+            if (typeof marked === 'undefined') {
+                setTimeout(init, 100);
+                return;
+            }
+            
+            renderSidebar();
+            setupEventListeners();
+            
+            // Load first document after a brief delay to ensure everything is ready
+            setTimeout(() => {
+                const firstDoc = docs[Object.keys(docs)[0]][0];
+                loadDocument(firstDoc.file, firstDoc.title);
+            }, 100);
+        }
+
+        // Render sidebar navigation
+        function renderSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            let html = '';
+
+            for (const [section, items] of Object.entries(docs)) {
+                html += `<div class="nav-section">`;
+                html += `<div class="nav-section-title">${section}</div>`;
+                
+                items.forEach(item => {
+                    html += `
+                        <div class="nav-item" data-file="${item.file}">
+                            <span class="nav-icon">${item.title.split(' ')[0]}</span>
+                            <span>${item.title.substring(item.title.indexOf(' ') + 1)}</span>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+
+            sidebar.innerHTML = html;
+        }
+
+        // Load and render markdown document
+        async function loadDocument(file, title) {
+            const docContent = document.getElementById('docContent');
+            docContent.innerHTML = '<div class="loading">Loading documentation</div>';
+
+            try {
+                const response = await fetch(file);
+                if (!response.ok) throw new Error('Document not found');
+                
+                const markdown = await response.text();
+                
+                // Ensure marked is available
+                if (typeof marked === 'undefined') {
+                    throw new Error('Markdown parser not loaded');
+                }
+                
+                // Configure marked
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            try {
+                                return hljs.highlight(code, { language: lang }).value;
+                            } catch (e) {
+                                console.error('Highlight error:', e);
+                            }
+                        }
+                        if (typeof hljs !== 'undefined') {
+                            try {
+                                return hljs.highlightAuto(code).value;
+                            } catch (e) {
+                                console.error('Highlight error:', e);
+                            }
+                        }
+                        return code;
+                    },
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    mangle: false
+                });
+
+                const html = marked.parse(markdown);
+                docContent.innerHTML = html;
+                
+                // Apply syntax highlighting to any code blocks that weren't caught
+                if (typeof hljs !== 'undefined') {
+                    docContent.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.file === file) {
+                        item.classList.add('active');
+                    }
+                });
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                currentDoc = { file, title };
+            } catch (error) {
+                docContent.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Error Loading Document</h3>
+                        <p>Could not load: ${file}</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation clicks
+            document.getElementById('sidebar').addEventListener('click', (e) => {
+                const navItem = e.target.closest('.nav-item');
+                if (navItem) {
+                    const file = navItem.dataset.file;
+                    const title = navItem.textContent.trim();
+                    loadDocument(file, title);
+                }
+            });
+
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                filterDocuments(e.target.value);
+            });
+
+            // Scroll to top
+            const scrollTop = document.getElementById('scrollTop');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollTop.classList.add('visible');
+                } else {
+                    scrollTop.classList.remove('visible');
+                }
+            });
+
+            scrollTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Filter documents by search
+        function filterDocuments(query) {
+            const navItems = document.querySelectorAll('.nav-item');
+            const lowerQuery = query.toLowerCase();
+
+            navItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(lowerQuery)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize when DOM and libraries are ready
+        let libraryCheckAttempts = 0;
+        const maxAttempts = 50; // 5 seconds max wait
+
+        function waitForLibraries() {
+            libraryCheckAttempts++;
+            
+            if (typeof marked === 'undefined' || typeof hljs === 'undefined') {
+                if (libraryCheckAttempts < maxAttempts) {
+                    console.log(`Waiting for libraries to load... (attempt ${libraryCheckAttempts}/${maxAttempts})`);
+                    setTimeout(waitForLibraries, 100);
+                } else {
+                    // Timeout - show error
+                    const docContent = document.getElementById('docContent');
+                    docContent.innerHTML = `
+                        <div class="error">
+                            <h3>⚠️ Failed to Load Required Libraries</h3>
+                            <p>The documentation site requires external libraries (Marked.js and Highlight.js) to render markdown.</p>
+                            <p>This may be due to:</p>
+                            <ul>
+                                <li>No internet connection (libraries are loaded from CDN)</li>
+                                <li>CDN is blocked by firewall or ad blocker</li>
+                                <li>Slow network connection</li>
+                            </ul>
+                            <p><strong>Solutions:</strong></p>
+                            <ul>
+                                <li>Check your internet connection</li>
+                                <li>Disable ad blockers for this page</li>
+                                <li>Try refreshing the page</li>
+                                <li>Or view the markdown files directly in the docs/ folder</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            console.log('Libraries loaded successfully! Initializing documentation...');
+            init();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForLibraries);
+        } else {
+            waitForLibraries();
+        }
+    </script>
+</body>
+</html>
+

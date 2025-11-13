@@ -326,10 +326,21 @@ class ThermodynamicCoordinator:
                         candidates.append(new_velocity)
                         energies.append(energy)
 
-                    # Sample from Boltzmann distribution
+                    # Sample from Boltzmann distribution (with numerical stability)
                     energies = np.array(energies)
-                    probabilities = np.exp(-self.beta * energies)
-                    probabilities /= probabilities.sum()
+                    
+                    # Use log-sum-exp trick for numerical stability
+                    # Subtract max energy to prevent overflow/underflow
+                    energies_shifted = -self.beta * (energies - np.min(energies))
+                    probabilities = np.exp(energies_shifted)
+                    
+                    # Normalize probabilities with safety check
+                    prob_sum = probabilities.sum()
+                    if prob_sum > 0 and not np.isnan(prob_sum):
+                        probabilities /= prob_sum
+                    else:
+                        # Fallback to uniform distribution if numerical issues
+                        probabilities = np.ones(len(candidates)) / len(candidates)
 
                     # Select velocity
                     selected_idx = np.random.choice(len(candidates), p=probabilities)

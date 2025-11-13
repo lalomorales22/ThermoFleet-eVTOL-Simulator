@@ -15,6 +15,27 @@
 
 ---
 
+## 📚 Documentation
+
+### Interactive Documentation Site
+
+Professional dark-themed docs with search, syntax highlighting, and organized navigation!
+
+```bash
+# Start the documentation server
+./docs/serve.sh
+
+# Then open: http://localhost:8000
+```
+
+Or manually:
+```bash
+cd docs && python3 -m http.server 8000
+# Open: http://localhost:8000
+```
+
+---
+
 ## 🎯 Project Overview
 
 **ThermoFleet-eVTOL-Simulator** is an advanced simulation platform for training autonomous eVTOL vehicles using **thermodynamic computing** principles. Combining traditional reinforcement learning with energy-based models (EBMs), we achieve unprecedented efficiency in multi-agent coordination, path planning, and decision-making.
@@ -349,6 +370,49 @@ action, energy, metadata = decision_maker.sample_action_thermodynamic(
 )
 ```
 
+### Scenario Generation (NEW! 🎉)
+
+**Priority 1.1 Implementation Complete!** Generate diverse training scenarios automatically:
+
+```python
+from src.environments import EVTOLScenarioEnv
+
+# Create environment with automatic scenario generation
+env = EVTOLScenarioEnv(
+    vehicle_type="medium",
+    scenario_difficulty=0.5,  # 0=easy, 1=extreme
+    curriculum_learning=True,  # Gradually increase difficulty
+    enable_weather_scenarios=True,
+    enable_traffic_scenarios=True,
+    enable_failure_scenarios=True,
+    enable_edge_cases=True
+)
+
+# Reset generates a new scenario automatically
+obs, info = env.reset()
+print(f"Weather: {info['scenario']['weather_type']}")
+print(f"Traffic: {info['scenario']['traffic_density']}")
+print(f"Failures: {info['scenario']['num_failures']}")
+```
+
+**Scenario Components:**
+- **Weather Conditions**: 7 types (clear, windy, rainy, foggy, snowy, stormy, mixed)
+  - Wind speed, gusts, turbulence, precipitation, visibility, temperature
+- **Traffic Patterns**: 5 densities (low, medium, high, rush_hour, emergency)
+  - Hotspots, emergency vehicles, delivery routes, congestion zones
+- **Failure Modes**: 7 types
+  - Rotor failures, battery degradation, GPS dropout, IMU drift, communication loss, payload shift, sensor malfunction
+- **Edge Cases**: 7 types
+  - Bird strikes, drone swarms, balloons, wind shear, near-misses, unexpected obstacles
+
+**Benefits:**
+- 🌟 **10,000+ diverse training scenarios** generated automatically
+- 🛡️ **Robust agents** trained on failures and edge cases
+- 🌦️ **Weather-resilient** flight capabilities
+- 📊 **Full database tracking** for performance analysis
+
+See [SCENARIO_GENERATION_GUIDE.md](docs/SCENARIO_GENERATION_GUIDE.md) for complete documentation.
+
 ### Database Analysis
 ```bash
 # View training metrics
@@ -359,6 +423,11 @@ python scripts/analyze_db.py --export-csv --output=energy_trace.csv
 
 # Query specific episodes
 python scripts/analyze_db.py --episodes --vehicle-type=medium --limit=10
+
+# NEW: Query scenario performance
+from src.database.scenario_logger import ScenarioLogger
+logger = ScenarioLogger()
+summary = logger.get_scenario_performance_summary(weather_type='stormy')
 ```
 
 ### Training Visualization
@@ -441,6 +510,9 @@ pytest tests/ -v
 # Test thermodynamic modules
 pytest tests/test_thermodynamic/ -v
 
+# NEW: Test scenario generation system
+python scripts/test_scenario_generation.py
+
 # Run with coverage
 pytest tests/ -v --cov=src --cov-report=html
 
@@ -519,6 +591,6 @@ git checkout -b feature/thermodynamic-improvements
     Train Smart. Fly Safe. Compute Efficiently.
 ```
 
-**[Docs](docs/) • [Issues](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/issues) • [Discussions](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/discussions)**
+**[📚 Documentation Site](docs/index.html) • [Docs](docs/) • [Issues](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/issues) • [Discussions](https://github.com/lalomorales22/ThermoFleet-eVTOL-Simulator/discussions)**
 
 </div>

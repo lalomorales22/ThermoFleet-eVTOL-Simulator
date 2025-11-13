@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from src.training.ppo_trainer import PPOTrainer
 from src.training.ddpg_trainer import DDPGTrainer
 from src.environments.evtol_gym_env import EVTOLEnv
+from src.environments.evtol_scenario_env import EVTOLScenarioEnv
 
 # Configure logging
 logging.basicConfig(
@@ -203,6 +204,75 @@ def parse_args():
         help="Number of waypoints for thermodynamic path planning",
     )
 
+    # Scenario generation arguments (Priority 1.1)
+    parser.add_argument(
+        "--enable-scenarios",
+        action="store_true",
+        help="Enable synthetic scenario generation (weather, traffic, failures, edge cases)",
+    )
+
+    parser.add_argument(
+        "--scenario-difficulty",
+        type=float,
+        default=0.5,
+        help="Scenario difficulty (0.0=easy, 1.0=extreme)",
+    )
+
+    parser.add_argument(
+        "--scenario-weather",
+        type=str,
+        default=None,
+        choices=["clear", "windy", "rainy", "foggy", "snowy", "stormy", "mixed"],
+        help="Specific weather type for scenarios (None=random)",
+    )
+
+    parser.add_argument(
+        "--scenario-traffic",
+        type=str,
+        default=None,
+        choices=["low", "medium", "high", "rush_hour", "emergency"],
+        help="Specific traffic density for scenarios (None=auto-scaled by difficulty)",
+    )
+
+    parser.add_argument(
+        "--enable-failures",
+        action="store_true",
+        help="Enable failure mode injection in scenarios",
+    )
+
+    parser.add_argument(
+        "--enable-edge-cases",
+        action="store_true",
+        help="Enable edge cases (bird strikes, wind shear, etc.) in scenarios",
+    )
+
+    parser.add_argument(
+        "--enable-weather-scenarios",
+        action="store_true",
+        default=True,
+        help="Enable weather condition scenarios",
+    )
+
+    parser.add_argument(
+        "--enable-traffic-scenarios",
+        action="store_true",
+        default=True,
+        help="Enable traffic pattern scenarios",
+    )
+
+    parser.add_argument(
+        "--curriculum-learning",
+        action="store_true",
+        help="Enable curriculum learning (gradually increase difficulty)",
+    )
+
+    parser.add_argument(
+        "--scenario-seed",
+        type=int,
+        default=None,
+        help="Random seed for scenario generation",
+    )
+
     return parser.parse_args()
 
 
@@ -234,6 +304,22 @@ def train(args):
         if args.path_planner == "thermodynamic":
             logger.info(f"Energy-Based Path Planner: ON")
             logger.info(f"Number of Waypoints: {args.n_waypoints}")
+
+    # Log scenario generation settings
+    if args.enable_scenarios or args.scenario_weather or args.scenario_traffic or args.enable_failures or args.enable_edge_cases:
+        logger.info("\n🌦️ SCENARIO GENERATION ENABLED (Priority 1.1)")
+        logger.info(f"Scenario Difficulty: {args.scenario_difficulty:.2f}")
+        if args.scenario_weather:
+            logger.info(f"Weather Type: {args.scenario_weather}")
+        else:
+            logger.info(f"Weather: Auto-generated (random)")
+        if args.scenario_traffic:
+            logger.info(f"Traffic Density: {args.scenario_traffic}")
+        else:
+            logger.info(f"Traffic: Auto-scaled by difficulty")
+        logger.info(f"Failure Modes: {'ON' if args.enable_failures else 'OFF'}")
+        logger.info(f"Edge Cases: {'ON' if args.enable_edge_cases else 'OFF'}")
+        logger.info(f"Curriculum Learning: {'ON' if args.curriculum_learning else 'OFF'}")
 
     logger.info("=" * 60)
 
@@ -273,6 +359,29 @@ def train(args):
         'n_waypoints': args.n_waypoints if args.path_planner == "thermodynamic" else None,
     }
 
+    # Determine if we should use scenario generation environment
+    use_scenarios = (
+        args.enable_scenarios or 
+        args.scenario_weather is not None or 
+        args.scenario_traffic is not None or 
+        args.enable_failures or 
+        args.enable_edge_cases
+    )
+
+    # Store scenario config for passing to trainer
+    scenario_config = {
+        'enable_scenarios': use_scenarios,
+        'scenario_difficulty': args.scenario_difficulty,
+        'scenario_weather': args.scenario_weather,
+        'scenario_traffic': args.scenario_traffic,
+        'enable_failures': args.enable_failures,
+        'enable_edge_cases': args.enable_edge_cases,
+        'enable_weather_scenarios': args.enable_weather_scenarios,
+        'enable_traffic_scenarios': args.enable_traffic_scenarios,
+        'curriculum_learning': args.curriculum_learning,
+        'scenario_seed': args.scenario_seed,
+    } if use_scenarios else None
+
     # Create trainer based on algorithm
     if args.algo == "PPO":
         trainer = PPOTrainer(
@@ -290,6 +399,7 @@ def train(args):
             use_wandb=args.use_wandb,
             wandb_project=args.wandb_project,
             wandb_name=args.wandb_name,
+            scenario_config=scenario_config,  # NEW: Pass scenario config
         )
 
     elif args.algo in ["DDPG", "TD3", "SAC"]:
@@ -309,6 +419,7 @@ def train(args):
             use_wandb=args.use_wandb,
             wandb_project=args.wandb_project,
             wandb_name=args.wandb_name,
+            scenario_config=scenario_config,  # NEW: Pass scenario config
         )
 
     else:

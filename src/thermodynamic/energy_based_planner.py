@@ -190,9 +190,18 @@ class EnergyBasedPathPlanner:
                 energies.append(energy)
 
             # Sample from Boltzmann distribution: P(path) ∝ exp(-beta * energy)
+            # Use log-sum-exp trick for numerical stability
             energies = np.array(energies)
-            probabilities = np.exp(-self.beta * energies)
-            probabilities /= probabilities.sum()
+            energies_shifted = -self.beta * (energies - np.min(energies))
+            probabilities = np.exp(energies_shifted)
+            
+            # Normalize with safety check
+            prob_sum = probabilities.sum()
+            if prob_sum > 0 and not np.isnan(prob_sum):
+                probabilities /= prob_sum
+            else:
+                # Fallback to uniform distribution if numerical issues
+                probabilities = np.ones(len(candidates)) / len(candidates)
 
             # Select path according to probability
             selected_idx = rng.choice(len(candidates), p=probabilities)
