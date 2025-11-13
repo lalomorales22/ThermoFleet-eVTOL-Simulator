@@ -121,3 +121,5 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+replays/episode_20251111_002714.pkl.gz
+replays/episode_20251111_002714_metadata.json
