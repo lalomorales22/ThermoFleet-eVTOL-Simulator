@@ -84,3 +84,4 @@ sphinx-rtd-theme>=2.0.0
 ipython>=8.17.0
 ipykernel>=6.27.0
 jupyter>=1.0.0
+cryptography

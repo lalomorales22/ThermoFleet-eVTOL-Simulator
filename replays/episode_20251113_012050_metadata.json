@@ -1,0 +1,11 @@
+{
+  "episode_id": "episode_20251113_012050",
+  "timestamp": "2025-11-13T01:20:50.105012",
+  "vehicle_type": "medium",
+  "num_agents": 1,
+  "duration": 14.3,
+  "total_reward": 267.8823566923799,
+  "collisions": 0,
+  "altitude_violations": 0,
+  "arena": "NYC_Manhattan",
+  "success": 

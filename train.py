@@ -329,12 +329,20 @@ def train(args):
         mean_reward, std_reward = trainer.evaluate(n_episodes=args.n_eval_episodes)
         logger.info(f"Final performance: {mean_reward:.2f} ± {std_reward:.2f}")
 
+    except KeyboardInterrupt:
+        logger.info("Training interrupted by user")
+        raise
+    
     except Exception as e:
         logger.error(f"Training failed with error: {e}", exc_info=True)
         raise
 
     finally:
-        trainer.cleanup()
+        # Always cleanup resources
+        try:
+            trainer.cleanup()
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
 
 
 def evaluate(args):

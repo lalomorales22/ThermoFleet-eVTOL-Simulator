@@ -83,6 +83,7 @@ class EVTOLEnv(gym.Env):
         self.vehicle_params = self._get_vehicle_params(vehicle_type)
 
         # Define observation space (30 dimensions)
+        # Use float32 explicitly to avoid gymnasium dtype warnings
         self.observation_space = spaces.Box(
             low=np.array([
                 -arena_bounds[0], -arena_bounds[1], 0.0,  # position (x, y, z)
@@ -94,7 +95,7 @@ class EVTOLEnv(gym.Env):
                 -50.0, -50.0, -50.0,  # IMU accelerometer (ax, ay, az)
                 0.0,  # battery level (0-1)
                 0.0,  # time remaining (0-1)
-            ]),
+            ], dtype=np.float32),
             high=np.array([
                 arena_bounds[0], arena_bounds[1], arena_bounds[2],  # position
                 50.0, 50.0, 50.0,  # velocity
@@ -105,14 +106,15 @@ class EVTOLEnv(gym.Env):
                 50.0, 50.0, 50.0,  # IMU
                 1.0,  # battery
                 1.0,  # time
-            ]),
+            ], dtype=np.float32),
             dtype=np.float32,
         )
 
         # Define action space (4 continuous actions)
+        # Use float32 explicitly to avoid gymnasium dtype warnings
         self.action_space = spaces.Box(
-            low=np.array([0.0, -1.0, -1.0, -1.0]),  # thrust, roll, pitch, yaw
-            high=np.array([1.0, 1.0, 1.0, 1.0]),
+            low=np.array([0.0, -1.0, -1.0, -1.0], dtype=np.float32),  # thrust, roll, pitch, yaw
+            high=np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32),
             dtype=np.float32,
         )
 

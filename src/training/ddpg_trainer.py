@@ -24,6 +24,8 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.utils import set_random_seed
 
 from ..environments.evtol_gym_env import EVTOLEnv
+from ..database.db_logger import DatabaseLogger
+from ..database.callbacks import DatabaseLoggingCallback
 
 logger = logging.getLogger(__name__)
 
@@ -140,16 +142,27 @@ class DDPGTrainer:
         if use_wandb:
             try:
                 import wandb
-                wandb.init(
-                    project=wandb_project,
-                    name=wandb_name or f"{algorithm.lower()}_{vehicle_type}_{int(time.time())}",
-                    config={
+                import os
+                
+                # Get entity from environment variable if available
+                wandb_entity = os.getenv('WANDB_ENTITY', None)
+                
+                init_config = {
+                    "project": wandb_project,
+                    "name": wandb_name or f"{algorithm.lower()}_{vehicle_type}_{int(time.time())}",
+                    "config": {
                         "algorithm": algorithm,
                         "vehicle_type": vehicle_type,
                         **self.algo_kwargs,
                     },
-                )
-                logger.info("Initialized WandB logging")
+                }
+                
+                # Add entity if specified
+                if wandb_entity:
+                    init_config["entity"] = wandb_entity
+                
+                wandb.init(**init_config)
+                logger.info(f"Initialized WandB logging (project: {wandb_project}, entity: {wandb_entity or 'default'})")
             except ImportError:
                 logger.warning("wandb not installed. Disabling wandb.")
                 self.use_wandb = False
@@ -159,6 +172,10 @@ class DDPGTrainer:
         self.eval_env = None
         self.model = None
         self.action_noise = None
+
+        # Database logger will be initialized later (after env setup)
+        # to avoid pickle issues with SubprocVecEnv
+        self.db_logger = None
 
         logger.info(f"Initialized {algorithm} trainer for vehicle type: {vehicle_type}")
 
@@ -256,6 +273,27 @@ class DDPGTrainer:
     def setup_callbacks(self):
         """Setup training callbacks."""
         callbacks = []
+
+        # Initialize database logger now (after env setup, to avoid pickle issues)
+        if self.db_logger is None:
+            try:
+                self.db_logger = DatabaseLogger(enable_sensor_logging=False)
+                logger.info("Database logging enabled")
+            except Exception as e:
+                logger.warning(f"Failed to initialize database logger: {e}")
+                self.db_logger = None
+
+        # Database logging callback (FIRST - logs all training data)
+        if self.db_logger is not None:
+            db_callback = DatabaseLoggingCallback(
+                db_logger=self.db_logger,
+                vehicle_type=self.vehicle_type,
+                arena_name="NYC_Manhattan",  # TODO: Make configurable
+                algorithm=self.algorithm,
+                verbose=1
+            )
+            callbacks.append(db_callback)
+            logger.info("Added database logging callback")
 
         # Checkpoint callback
         checkpoint_callback = CheckpointCallback(
@@ -358,7 +396,8 @@ class DDPGTrainer:
             raise ValueError("No model loaded. Train or load a model first.")
 
         if self.eval_env is None:
-            self.setup_env()
+            # Only create eval env, not training env
+            self.eval_env = DummyVecEnv([self.make_env(999, self.seed)])
 
         episode_rewards = []
         episode_lengths = []
@@ -395,10 +434,28 @@ class DDPGTrainer:
 
     def cleanup(self):
         """Cleanup resources."""
+        # Close database logger
+        if self.db_logger is not None:
+            try:
+                self.db_logger.close()
+                logger.info("Database logger closed")
+            except Exception as e:
+                logger.error(f"Error closing database logger: {e}")
+            self.db_logger = None
+
         if self.env is not None:
-            self.env.close()
+            try:
+                self.env.close()
+            except Exception as e:
+                logger.error(f"Error closing training env: {e}")
+            self.env = None
+            
         if self.eval_env is not None:
-            self.eval_env.close()
+            try:
+                self.eval_env.close()
+            except Exception as e:
+                logger.error(f"Error closing eval env: {e}")
+            self.eval_env = None
 
         if self.use_wandb:
             try:

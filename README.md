@@ -62,10 +62,13 @@ Thermodynamic:   Energy Landscape → Sample from Boltzmann Distribution → Act
 - **Energy-Based Collision Avoidance**: Gradient descent in energy landscapes
 - **Multi-Agent Coordinator**: Block Gibbs sampling for fleet coordination
 
-### 📊 Performance
+### 📊 Performance & Visualization
 - **1M+ sim steps/sec** (headless mode)
 - **60 FPS** (visual mode with Omniverse)
 - **~60 flips/ns** (thermodynamic sampling on GPU, comparable to FPGA)
+- **Real-Time Dashboard** - Streamlit web interface with live 3D visualization
+- **Multi-Agent Tracking** - Monitor up to 20 vehicles simultaneously
+- **Database Integration** - SQLite/MySQL for comprehensive data analysis
 
 ---
 
@@ -135,7 +138,7 @@ python main.py --mode=visual
 
 ```bash
 # Train using thermodynamic decision making
-python train.py --algo=PPO --thermodynamic --beta=2.0
+python train.py --algo=PPO --thermodynamic --beta=2.0 --use-wandb
 
 # Train with energy-based path planning
 python train.py --algo=DDPG --path-planner=thermodynamic --n-waypoints=10
@@ -143,6 +146,146 @@ python train.py --algo=DDPG --path-planner=thermodynamic --n-waypoints=10
 # Multi-agent coordination with block Gibbs
 python main.py --mode=headless --agents=100 --coordinator=block_gibbs
 ```
+
+---
+
+## 🐳 Docker Deployment
+
+### Quick Start with Docker
+
+Run the entire platform with one command:
+
+```bash
+# Build and start all services (simulator, trainer, dashboard, MySQL, Ray)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
+
+### What Docker Compose Includes
+
+| Service | Container | Ports | Purpose |
+|---------|-----------|-------|---------|
+| **simulator** | thermofleet-simulator | - | Headless multi-agent simulation |
+| **trainer** | thermofleet-trainer | - | RL training (PPO/DDPG/TD3/SAC) |
+| **dashboard** | thermofleet-dashboard | 8501 | Streamlit web interface |
+| **mysql** | thermofleet-mysql | 3306 | MySQL database |
+| **ray-head** | thermofleet-ray-head | 8265, 10001 | Distributed training cluster |
+
+### Access Services
+
+```bash
+# Dashboard (Streamlit)
+http://localhost:8501
+
+# Ray Dashboard (distributed training)
+http://localhost:8265
+
+# MySQL Database
+mysql -h localhost -P 3306 -u thermofleet -p
+# Password: changeme
+```
+
+### Docker-Only Commands
+
+```bash
+# Run training in container
+docker-compose run trainer python train.py --algo=PPO --total-timesteps=100000
+
+# Run tests in container
+docker-compose run simulator pytest tests/ -v
+
+# Interactive shell
+docker-compose run simulator bash
+
+# View specific service logs
+docker-compose logs -f dashboard
+docker-compose logs -f trainer
+
+# Restart specific service
+docker-compose restart dashboard
+
+# Scale training workers
+docker-compose up -d --scale trainer=3
+```
+
+### Standalone Docker (without compose)
+
+```bash
+# Build image
+docker build -t thermofleet-evtol-simulator .
+
+# Run headless simulation
+docker run thermofleet-evtol-simulator
+
+# Run training
+docker run thermofleet-evtol-simulator python train.py --algo=PPO --total-timesteps=10000
+
+# Run dashboard (expose port)
+docker run -p 8501:8501 thermofleet-evtol-simulator streamlit run dashboard.py --server.port=8501 --server.address=0.0.0.0
+
+# GPU support (NVIDIA runtime required)
+docker run --runtime=nvidia --gpus all thermofleet-evtol-simulator python train.py --device=cuda
+```
+
+### Environment Variables
+
+Configure via `.env` file or Docker environment:
+
+```bash
+# Database
+DB_TYPE=mysql
+DB_HOST=mysql
+DB_NAME=thermofleet
+DB_USER=thermofleet
+DB_PASSWORD=changeme
+
+# WandB (optional)
+WANDB_API_KEY=your_api_key_here
+
+# GPU
+NVIDIA_VISIBLE_DEVICES=all
+CUDA_VISIBLE_DEVICES=0
+```
+
+### Production Deployment
+
+```bash
+# Build production image
+docker build -t thermofleet-evtol-simulator:prod --target base .
+
+# Push to registry
+docker tag thermofleet-evtol-simulator:prod your-registry/thermofleet:latest
+docker push your-registry/thermofleet:latest
+
+# Deploy to cloud
+# See deploy/ directory for AWS and GCP scripts
+```
+
+### Docker Image Features
+
+- ✅ Multi-stage build for small image size
+- ✅ NVIDIA CUDA 12.2 support
+- ✅ Python 3.11 optimized
+- ✅ Non-root user for security
+- ✅ Health checks included
+- ✅ Volume mounts for persistence
+- ✅ Network isolation
+- ✅ Auto-restart policies
+
+### Volumes and Persistence
+
+Docker Compose automatically creates volumes for:
+- `./checkpoints` - Trained model checkpoints
+- `./logs` - TensorBoard logs
+- `./data` - Database and persistent data
+- `mysql-data` - MySQL database storage
+
+**Data persists** even when containers are stopped/restarted.
 
 ---
 
@@ -167,6 +310,9 @@ The simulator is ready for research, development, and training autonomous eVTOL 
 ```bash
 # Traditional RL
 python train.py --algo=PPO --vehicle-type=medium --total-timesteps=1000000
+
+# With experiment tracking (WandB)
+python train.py --algo=PPO --vehicle-type=medium --total-timesteps=1000000 --use-wandb
 
 # Headless simulation (max speed)
 python main.py --mode=headless --agents=100 --episodes=1000
@@ -215,7 +361,35 @@ python scripts/analyze_db.py --export-csv --output=energy_trace.csv
 python scripts/analyze_db.py --episodes --vehicle-type=medium --limit=10
 ```
 
-### Training Visualization with TensorBoard
+### Training Visualization
+
+#### Option 1: Enhanced Streamlit Dashboard (Recommended)
+
+**NEW!** Real-time web dashboard with comprehensive analytics:
+
+```bash
+# Launch the enhanced dashboard
+streamlit run dashboard.py
+
+# Then open browser to: http://localhost:8501/
+```
+
+**Dashboard Features:**
+- 📊 **Overview Mode**: Key metrics, success rates, recent episodes
+- 🎮 **Live Simulation**: 3D trajectory visualization with X, Y, Z tracking
+- 📈 **Training Monitor**: Real-time progress with rolling averages
+- 🔥 **Thermodynamic Analysis**: Energy consumption and power tracking
+- 📉 **Performance Analytics**: Vehicle type comparisons
+- 🎬 **Replay Viewer**: Episode playback and analysis
+- ⚙️ **Configuration**: System settings and database maintenance
+
+**Live 3D Visualization:**
+- Multi-agent fleet tracking (up to 20 vehicles)
+- Real-time altitude compliance zones (400-500 ft)
+- Color-coded trajectories with energy heatmaps
+- Live metrics: altitude, speed, battery, distance
+
+#### Option 2: TensorBoard (Local)
 
 Monitor training progress in real-time:
 
@@ -224,6 +398,17 @@ Monitor training progress in real-time:
 tensorboard --logdir=./logs
 
 # Then open browser to: http://localhost:6006/
+```
+
+#### Option 3: Weights & Biases (Cloud)
+
+Track experiments in the cloud with automatic logging:
+
+```bash
+# Train with WandB tracking
+python train.py --algo=PPO --total-timesteps=1000000 --use-wandb
+
+# Then view at: https://wandb.ai/your-username/thermofleet-evtol-simulator
 ```
 
 **Available Metrics:**
@@ -235,11 +420,15 @@ tensorboard --logdir=./logs
 - `train/entropy_loss` - Exploration entropy
 
 **Tips:**
-- Start TensorBoard before training to watch in real-time
-- Use different log directories for experiment comparison
+- Use **all three** visualization tools simultaneously for comprehensive monitoring
+- Streamlit dashboard for real-time 3D visualization and fleet management
+- TensorBoard for detailed training metrics and loss curves
+- WandB provides best experiment comparison and team collaboration
 - The warning "TensorFlow installation not found" is normal and can be ignored
 
-See [TENSORBOARD_GUIDE.md](TENSORBOARD_GUIDE.md) for detailed usage instructions.
+See [TENSORBOARD_GUIDE.md](TENSORBOARD_GUIDE.md), [WANDB_SETUP.md](docs/WANDB_SETUP.md), and [DATA_FLOW.md](docs/DATA_FLOW.md) for detailed instructions.
+
+**Important**: The dashboard connects to **SQLite/MySQL database** (not WandB or TensorBoard). See [docs/DATA_FLOW.md](docs/DATA_FLOW.md) for architecture details.
 
 ---
 

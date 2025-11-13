@@ -479,11 +479,48 @@ def list_replays(replay_dir: str = "replays") -> List[Dict[str, Any]]:
 
     replays = []
     for metadata_file in replay_path.glob("*_metadata.json"):
-        with open(metadata_file, 'r') as f:
-            metadata = json.load(f)
-            replays.append(metadata)
+        try:
+            with open(metadata_file, 'r') as f:
+                content = f.read()
+                
+                # Try to repair common JSON issues
+                if content.strip().endswith(','):
+                    content = content.strip()[:-1]  # Remove trailing comma
+                
+                # Try to complete incomplete JSON
+                if not content.strip().endswith('}'):
+                    # Find the last complete key-value pair
+                    last_comma = content.rfind(',')
+                    if last_comma > 0:
+                        content = content[:last_comma] + '\n}'
+                    else:
+                        # If no comma, try to close at the last complete value
+                        content = content.rstrip() + '\n}'
+                
+                metadata = json.loads(content)
+                replays.append(metadata)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Skipping corrupt metadata file {metadata_file.name}: {e}")
+            # Try to extract basic info from filename
+            episode_id = metadata_file.stem.replace('_metadata', '')
+            replays.append({
+                'episode_id': episode_id,
+                'timestamp': 'Unknown',
+                'vehicle_type': 'unknown',
+                'num_agents': 0,
+                'duration': 0.0,
+                'total_reward': 0.0,
+                'collisions': 0,
+                'altitude_violations': 0,
+                'arena': 'Unknown',
+                'success': False,
+                'notes': f'Corrupt metadata file: {e}'
+            })
+        except Exception as e:
+            print(f"Warning: Error reading {metadata_file.name}: {e}")
+            continue
 
-    # Sort by timestamp (newest first)
-    replays.sort(key=lambda x: x['timestamp'], reverse=True)
+    # Sort by timestamp (newest first), handle 'Unknown' timestamps
+    replays.sort(key=lambda x: x.get('timestamp', '0000-00-00'), reverse=True)
 
     return replays
